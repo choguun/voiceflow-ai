@@ -1,0 +1,396 @@
+.invoice-preview {
+  max-width: 1000px;
+  margin: 0 auto;
+  color: white;
+  padding: 20px;
+  animation: fadeInUp 0.8s ease-out;
+  position: relative;
+}
+
+.invoice-header {
+  text-align: center;
+  margin-bottom: 30px;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.invoice-header h2 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  background: linear-gradient(45deg, #ffffff, #f0f8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+.invoice-header p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.invoice-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.action-button {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  letter-spacing: 0.5px;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  color: #667eea;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+.action-button.primary:hover {
+  background: linear-gradient(135deg, #ffffff, #f8f9ff);
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.action-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: white;
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+}
+
+.invoice-container {
+  background: white;
+  border-radius: 20px;
+  margin: 30px 0;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  max-height: 70vh;
+  overflow-y: auto;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.invoice-content {
+  background: white;
+}
+
+.demo-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+
+.nav-button {
+  padding: 18px 40px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(15px);
+  letter-spacing: 0.5px;
+}
+
+.nav-button.primary {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+}
+
+.nav-button.primary:hover {
+  background: white;
+  color: #667eea;
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.3);
+}
+
+.nav-button.secondary {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.nav-button.secondary:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+}
+
+.demo-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+  animation: fadeInUp 0.8s ease-out 1s both;
+}
+
+.stat-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 25px;
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stat-item:hover::before {
+  opacity: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Enhanced Mobile Responsiveness for Invoice Preview */
+@media (max-width: 768px) {
+  .invoice-preview {
+    padding: 15px;
+  }
+  
+  .invoice-header h2 {
+    font-size: 2.2rem;
+    line-height: 1.3;
+  }
+  
+  .invoice-header p {
+    font-size: 1.1rem;
+  }
+  
+  .invoice-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .action-button {
+    width: 280px;
+    padding: 18px 30px;
+    font-size: 1.2rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .action-button:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+  
+  .demo-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .nav-button {
+    width: 280px;
+    padding: 20px 40px;
+    font-size: 1.3rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .nav-button:active {
+    transform: translateY(-2px) scale(0.98);
+  }
+  
+  .demo-stats {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .stat-item {
+    padding: 20px;
+    border-radius: 15px;
+  }
+  
+  .stat-label {
+    font-size: 0.95rem;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem;
+  }
+  
+  .invoice-container {
+    max-height: 65vh;
+    border-radius: 15px;
+    margin: 25px 0;
+  }
+  
+  .success-message {
+    top: 15%;
+    font-size: 1.3rem;
+    padding: 15px 30px;
+    border-radius: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .invoice-header h2 {
+    font-size: 1.9rem;
+  }
+  
+  .invoice-header p {
+    font-size: 1rem;
+  }
+  
+  .action-button {
+    width: 260px;
+    padding: 16px 25px;
+    font-size: 1.1rem;
+  }
+  
+  .nav-button {
+    width: 260px;
+    padding: 18px 35px;
+    font-size: 1.2rem;
+  }
+  
+  .stat-item {
+    padding: 18px;
+  }
+  
+  .stat-value {
+    font-size: 1.3rem;
+  }
+  
+  .invoice-container {
+    max-height: 55vh;
+  }
+  
+  .success-message {
+    font-size: 1.1rem;
+    padding: 12px 25px;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .invoice-preview {
+    padding: 10px;
+  }
+  
+  .invoice-header {
+    margin-bottom: 20px;
+  }
+  
+  .invoice-header h2 {
+    font-size: 1.8rem;
+  }
+  
+  .invoice-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .action-button {
+    width: auto;
+    min-width: 140px;
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+  
+  .demo-actions {
+    flex-direction: row;
+    gap: 15px;
+  }
+  
+  .nav-button {
+    width: auto;
+    min-width: 160px;
+    padding: 14px 25px;
+    font-size: 1.1rem;
+  }
+  
+  .demo-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  
+  .invoice-container {
+    max-height: 50vh;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .invoice-actions {
+    gap: 18px;
+  }
+  
+  .action-button {
+    padding: 16px 32px;
+  }
+  
+  .demo-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .invoice-container {
+    max-height: 75vh;
+  }
+}

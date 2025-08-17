@@ -1,0 +1,244 @@
+{
+  "scenarios": [
+    {
+      "id": "thai-street-food",
+      "title": "Thai Street Food Vendor",
+      "language": "th",
+      "businessType": "street food",
+      "description": "A street food vendor in Bangkok selling pad thai and som tam",
+      "voiceInput": "ลูกค้าซื้อผัดไทย 3 จาน ส้มตำ 2 จาน รวม 250 บาท",
+      "translation": "Customer bought 3 pad thai and 2 som tam, total 250 baht",
+      "expectedOutput": {
+        "items": [
+          {"name": "ผัดไทย", "quantity": 3, "unitPrice": 60, "total": 180},
+          {"name": "ส้มตำ", "quantity": 2, "unitPrice": 35, "total": 70}
+        ],
+        "total": 250,
+        "currency": "THB",
+        "paymentTerms": "immediate",
+        "businessType": "street food"
+      }
+    },
+    {
+      "id": "indonesian-repair-shop",
+      "title": "Indonesian Motor Repair Shop",
+      "language": "id",
+      "businessType": "repair shop",
+      "description": "A motorcycle repair shop in Jakarta providing oil change and brake pad service",
+      "voiceInput": "Pak Budi servis motor, ganti oli sama kampas rem, total 350 ribu, bayar minggu depan",
+      "translation": "Mr. Budi motorcycle service, oil change and brake pads, total 350 thousand, pay next week",
+      "expectedOutput": {
+        "items": [
+          {"name": "Ganti Oli", "quantity": 1, "unitPrice": 150000, "total": 150000},
+          {"name": "Kampas Rem", "quantity": 1, "unitPrice": 200000, "total": 200000}
+        ],
+        "customer": {"name": "Pak Budi"},
+        "total": 350000,
+        "currency": "IDR",
+        "paymentTerms": "later",
+        "dueDate": "next week",
+        "businessType": "repair shop"
+      }
+    },
+    {
+      "id": "filipino-sari-sari",
+      "title": "Filipino Sari-Sari Store",
+      "language": "tl",
+      "businessType": "sari-sari store",
+      "description": "A neighborhood convenience store in Manila selling canned goods and coffee",
+      "voiceInput": "Si Maria bumili ng 3 de lata, 2 pack ng kape, 150 pesos, hulugan",
+      "translation": "Maria bought 3 canned goods, 2 packs of coffee, 150 pesos, installment",
+      "expectedOutput": {
+        "items": [
+          {"name": "De Lata", "quantity": 3, "unitPrice": 35, "total": 105},
+          {"name": "Kape", "quantity": 2, "unitPrice": 22.5, "total": 45}
+        ],
+        "customer": {"name": "Si Maria"},
+        "total": 150,
+        "currency": "PHP",
+        "paymentTerms": "installment",
+        "businessType": "sari-sari store"
+      }
+    },
+    {
+      "id": "vietnamese-tailor",
+      "title": "Vietnamese Tailor Shop",
+      "language": "vi",
+      "businessType": "tailor",
+      "description": "A tailor shop in Ho Chi Minh City making ao dai with deposit payment",
+      "voiceInput": "Chị Lan may áo dài, đặt cọc 500 nghìn, còn lại 1 triệu khi xong",
+      "translation": "Sister Lan tailor ao dai, deposit 500 thousand, remaining 1 million when finished",
+      "expectedOutput": {
+        "items": [
+          {"name": "Áo Dài", "quantity": 1, "unitPrice": 1500000, "total": 1500000}
+        ],
+        "customer": {"name": "Chị Lan"},
+        "total": 1500000,
+        "currency": "VND",
+        "paymentTerms": "partial",
+        "deposit": 500000,
+        "remaining": 1000000,
+        "businessType": "tailor"
+      }
+    },
+    {
+      "id": "english-retail",
+      "title": "English Retail Store",
+      "language": "en",
+      "businessType": "retail",
+      "description": "A clothing store selling shirts and pants with delayed payment",
+      "voiceInput": "Customer bought 3 shirts and 2 pants, total 150 dollars, payment due next week",
+      "translation": "Customer bought 3 shirts and 2 pants, total 150 dollars, payment due next week",
+      "expectedOutput": {
+        "items": [
+          {"name": "Shirts", "quantity": 3, "unitPrice": 25, "total": 75},
+          {"name": "Pants", "quantity": 2, "unitPrice": 37.5, "total": 75}
+        ],
+        "total": 150,
+        "currency": "USD",
+        "paymentTerms": "later",
+        "dueDate": "next week",
+        "businessType": "retail"
+      }
+    }
+  ],
+  "businessTypes": [
+    {
+      "id": "street-food",
+      "name": "Street Food",
+      "icon": "🍜",
+      "description": "Food vendors and small restaurants",
+      "commonItems": ["food items", "beverages", "snacks"],
+      "currencies": ["THB", "IDR", "PHP", "VND"]
+    },
+    {
+      "id": "repair-shop",
+      "name": "Repair Shop",
+      "icon": "🔧",
+      "description": "Vehicle and equipment repair services",
+      "commonItems": ["parts", "labor", "maintenance"],
+      "currencies": ["IDR", "THB", "PHP", "VND"]
+    },
+    {
+      "id": "sari-sari-store",
+      "name": "Sari-Sari Store",
+      "icon": "🏪",
+      "description": "Neighborhood convenience stores",
+      "commonItems": ["groceries", "household items", "beverages"],
+      "currencies": ["PHP"]
+    },
+    {
+      "id": "tailor",
+      "name": "Tailor Shop",
+      "icon": "✂️",
+      "description": "Custom clothing and alterations",
+      "commonItems": ["clothing", "alterations", "custom orders"],
+      "currencies": ["VND", "THB", "IDR"]
+    },
+    {
+      "id": "retail",
+      "name": "Retail Store",
+      "icon": "🛍️",
+      "description": "General retail and merchandise",
+      "commonItems": ["clothing", "accessories", "goods"],
+      "currencies": ["USD", "SGD", "MYR"]
+    }
+  ],
+  "paymentMethods": {
+    "THB": {
+      "method": "PromptPay",
+      "icon": "🇹🇭",
+      "description": "Thailand's national QR payment system"
+    },
+    "PHP": {
+      "method": "GCash",
+      "icon": "🇵🇭",
+      "description": "Philippines mobile payment platform"
+    },
+    "IDR": {
+      "method": "GoPay",
+      "icon": "🇮🇩",
+      "description": "Indonesia's leading e-wallet"
+    },
+    "VND": {
+      "method": "VietQR",
+      "icon": "🇻🇳",
+      "description": "Vietnam's QR payment standard"
+    },
+    "USD": {
+      "method": "PayPal",
+      "icon": "💳",
+      "description": "International payment system"
+    }
+  },
+  "languages": {
+    "th": {
+      "name": "ไทย",
+      "nativeName": "Thai",
+      "flag": "🇹🇭",
+      "numberFormats": {
+        "หนึ่งร้อย": 100,
+        "สองร้อย": 200,
+        "ห้าร้อย": 500,
+        "หนึ่งพัน": 1000,
+        "สองพัน": 2000
+      }
+    },
+    "id": {
+      "name": "Bahasa Indonesia",
+      "nativeName": "Indonesian",
+      "flag": "🇮🇩",
+      "numberFormats": {
+        "seratus": 100,
+        "lima ratus": 500,
+        "seribu": 1000,
+        "lima ribu": 5000,
+        "sepuluh ribu": 10000,
+        "lima puluh ribu": 50000,
+        "seratus ribu": 100000,
+        "lima ratus ribu": 500000,
+        "satu juta": 1000000
+      }
+    },
+    "vi": {
+      "name": "Tiếng Việt",
+      "nativeName": "Vietnamese",
+      "flag": "🇻🇳",
+      "numberFormats": {
+        "một trăm": 100,
+        "năm trăm": 500,
+        "một nghìn": 1000,
+        "năm nghìn": 5000,
+        "mười nghìn": 10000,
+        "năm mươi nghìn": 50000,
+        "một trăm nghìn": 100000,
+        "năm trăm nghìn": 500000,
+        "một triệu": 1000000
+      }
+    },
+    "tl": {
+      "name": "Tagalog",
+      "nativeName": "Filipino",
+      "flag": "🇵🇭",
+      "numberFormats": {
+        "isandaan": 100,
+        "limandaan": 500,
+        "isanlibo": 1000,
+        "limanglibo": 5000,
+        "sampunglibo": 10000
+      }
+    },
+    "en": {
+      "name": "English",
+      "nativeName": "English",
+      "flag": "🇺🇸",
+      "numberFormats": {
+        "one hundred": 100,
+        "five hundred": 500,
+        "one thousand": 1000,
+        "five thousand": 5000,
+        "ten thousand": 10000
+      }
+    }
+  }
+}

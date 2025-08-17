@@ -1,0 +1,369 @@
+.voice-recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
+  padding: 20px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.recorder-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.record-button {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 52px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.record-button:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 45px rgba(102, 126, 234, 0.5);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.record-button.recording {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  animation: recordingPulse 1.2s infinite, recordingGlow 2s infinite;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 15px 45px rgba(255, 107, 107, 0.5), 0 0 20px rgba(255, 107, 107, 0.3);
+}
+
+.record-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.record-button::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  transform: scale(0);
+  animation: ripple 0.6s ease-out;
+}
+
+.record-button:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.record-button.recording::before {
+  opacity: 0.8;
+  transform: scale(1);
+  animation: recordingRipple 1.5s infinite;
+}
+
+.microphone-icon {
+  position: relative;
+  z-index: 2;
+}
+
+.audio-level {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  filter: blur(1px);
+  animation: audioLevelPulse 0.8s ease-in-out infinite alternate;
+}
+
+.recorder-status {
+  text-align: center;
+  min-height: 24px;
+}
+
+.recorder-status p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.recording {
+  color: #ee5a24;
+  animation: recordingTextPulse 1.5s infinite;
+  text-shadow: 0 0 10px rgba(238, 90, 36, 0.5);
+  font-weight: 600;
+}
+
+.ready {
+  color: #667eea;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ready:hover {
+  color: #5a6fd8;
+  text-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+.audio-visualizer {
+  width: 300px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 15px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  gap: 3px;
+  animation: visualizerFadeIn 0.5s ease-out;
+}
+
+.audio-bar {
+  width: 6px;
+  background: linear-gradient(to top, #ff6b6b, #ee5a24, #ffeaa7);
+  border-radius: 3px;
+  transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 4px;
+  position: relative;
+  animation: barPulse 1.5s ease-in-out infinite;
+}
+
+.audio-bar:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.audio-bar:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.audio-bar:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+.audio-bar:nth-child(5n) {
+  animation-delay: 0.4s;
+}
+
+.transcription {
+  max-width: 500px;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.transcription h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.transcription p {
+  margin: 0;
+  color: #666;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+@keyframes recordingPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes recordingGlow {
+  0%, 100% { 
+    box-shadow: 0 15px 45px rgba(255, 107, 107, 0.5), 0 0 20px rgba(255, 107, 107, 0.3);
+  }
+  50% { 
+    box-shadow: 0 15px 45px rgba(255, 107, 107, 0.7), 0 0 30px rgba(255, 107, 107, 0.5);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes recordingRipple {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes audioLevelPulse {
+  0% {
+    opacity: 0.6;
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0.9;
+    filter: blur(2px);
+  }
+}
+
+@keyframes visualizerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes barPulse {
+  0%, 100% {
+    background: linear-gradient(to top, #ff6b6b, #ee5a24, #ffeaa7);
+    transform: scaleY(1);
+  }
+  50% {
+    background: linear-gradient(to top, #ff8a80, #ffab40, #fff176);
+    transform: scaleY(1.1);
+  }
+}
+
+@keyframes recordingTextPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+
+/* Enhanced Mobile Responsiveness for Voice Recorder */
+@media (max-width: 768px) {
+  .voice-recorder {
+    gap: 20px;
+    padding: 15px;
+  }
+  
+  .record-button {
+    width: 130px;
+    height: 130px;
+    font-size: 48px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .record-button:active {
+    transform: translateY(-2px) scale(0.95);
+  }
+  
+  .record-button.recording:active {
+    transform: translateY(-2px) scale(0.95);
+  }
+  
+  .audio-visualizer {
+    width: 280px;
+    height: 75px;
+    padding: 12px;
+  }
+  
+  .audio-bar {
+    width: 5px;
+  }
+  
+  .recorder-status {
+    min-height: 30px;
+  }
+  
+  .recorder-status p {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .transcription {
+    padding: 18px;
+    font-size: 15px;
+    border-radius: 15px;
+    max-width: 90vw;
+  }
+  
+  .transcription h3 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .record-button {
+    width: 110px;
+    height: 110px;
+    font-size: 42px;
+  }
+  
+  .audio-visualizer {
+    width: 250px;
+    height: 70px;
+  }
+  
+  .audio-bar {
+    width: 4px;
+  }
+  
+  .recorder-status p {
+    font-size: 1rem;
+  }
+  
+  .transcription {
+    padding: 15px;
+    font-size: 14px;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .voice-recorder {
+    gap: 15px;
+  }
+  
+  .record-button {
+    width: 100px;
+    height: 100px;
+    font-size: 38px;
+  }
+  
+  .audio-visualizer {
+    width: 220px;
+    height: 60px;
+  }
+}
