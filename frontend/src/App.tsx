@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { VoiceRecorder } from './components/VoiceRecorder'
 import { InvoicePreview } from './components/InvoicePreview'
@@ -8,6 +8,20 @@ import './components/InvoicePreview.css'
 import './components/DemoScenarios.css'
 
 function App() {
+  type InvoiceItem = { name: string; quantity: number; unitPrice: number; total: number }
+  type Scenario = {
+    id?: string
+    title?: string
+    language: string
+    businessType: string
+    description?: string
+    voiceInput?: string
+    translation?: string
+    icon?: string
+    items?: InvoiceItem[]
+    total?: number
+    currency?: string
+  }
   const [selectedLanguage, setSelectedLanguage] = useState('en')
   const [currentStep, setCurrentStep] = useState('welcome')
   const [, setRecordedAudio] = useState<Blob | null>(null)
@@ -15,6 +29,121 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [processingStep, setProcessingStep] = useState('')
   const [showHelpTooltip, setShowHelpTooltip] = useState(false)
+  const [typedText, setTypedText] = useState('')
+  const [recordingToggle, setRecordingToggle] = useState(0)
+  const [toasts, setToasts] = useState<{ id: number; message: string; type?: 'info' | 'error' | 'success' }[]>([])
+  const [isHelpOpen, setIsHelpOpen] = useState(false)
+  const [themeMode, setThemeMode] = useState<'auto' | 'light' | 'dark'>('auto')
+  const [highContrast, setHighContrast] = useState(false)
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'ok' | 'down'>('unknown')
+  const [apiLatency, setApiLatency] = useState<number | null>(null)
+
+  // Backend base URL from env (Vite: VITE_API_BASE_URL)
+  const API_BASE: string = (import.meta as unknown as { env: Record<string, string | undefined> }).env?.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'
+  const apiUrl = useCallback((path: string) => `${API_BASE.replace(/\/$/, '')}${path}`, [API_BASE])
+
+  // i18n (minimal)
+  const i18n: Record<string, Record<string, string>> = {
+    en: {
+      recordTitle: 'Record Your Transaction',
+      recordSubtitle: 'Speak naturally about your business transaction',
+      processText: 'Process Text',
+      changeLanguage: '← Change Language',
+      tryDemo: '🎭 Try Demo',
+      recordLive: '🎤 Record Live'
+    },
+    id: {
+      recordTitle: 'Rekam Transaksi Anda',
+      recordSubtitle: 'Bicara alami tentang transaksi bisnis Anda',
+      processText: 'Proses Teks',
+      changeLanguage: '← Ganti Bahasa',
+      tryDemo: '🎭 Coba Demo',
+      recordLive: '🎤 Rekam Langsung'
+    },
+    th: {
+      recordTitle: 'บันทึกธุรกรรมของคุณ',
+      recordSubtitle: 'พูดตามธรรมชาติเกี่ยวกับธุรกรรมธุรกิจของคุณ',
+      processText: 'ประมวลผลข้อความ',
+      changeLanguage: '← เปลี่ยนภาษา',
+      tryDemo: '🎭 ทดลองเดโม',
+      recordLive: '🎤 บันทึกสด'
+    },
+    vi: {
+      recordTitle: 'Ghi Âm Giao Dịch Của Bạn',
+      recordSubtitle: 'Nói tự nhiên về giao dịch kinh doanh của bạn',
+      processText: 'Xử lý Văn bản',
+      changeLanguage: '← Đổi Ngôn ngữ',
+      tryDemo: '🎭 Dùng Thử',
+      recordLive: '🎤 Ghi Âm'
+    },
+    tl: {
+      recordTitle: 'I-record ang Iyong Transaksyon',
+      recordSubtitle: 'Magsalita nang natural tungkol sa iyong transaksyon',
+      processText: 'Iproseso ang Teksto',
+      changeLanguage: '← Palitan ang Wika',
+      tryDemo: '🎭 Subukan ang Demo',
+      recordLive: '🎤 Mag-record Ngayon'
+    }
+  }
+  const t = (key: string) => (i18n[selectedLanguage] && i18n[selectedLanguage][key]) || i18n.en[key] || key
+
+  // Persistence
+  useEffect(() => {
+    try {
+      const savedLang = localStorage.getItem('vf.selectedLanguage')
+      const savedStep = localStorage.getItem('vf.currentStep')
+      const savedTheme = localStorage.getItem('vf.themeMode') as 'auto' | 'light' | 'dark' | null
+      const savedContrast = localStorage.getItem('vf.highContrast')
+      if (savedLang) setSelectedLanguage(savedLang)
+      if (savedStep && ['welcome', 'demo', 'language', 'recording', 'invoice'].includes(savedStep)) setCurrentStep(savedStep)
+      if (savedTheme && ['auto', 'light', 'dark'].includes(savedTheme)) setThemeMode(savedTheme)
+      if (savedContrast) setHighContrast(savedContrast === 'true')
+    } catch (e) {
+      // ignore persistence errors
+      void e
+    }
+  }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('vf.selectedLanguage', selectedLanguage) } catch (e) { void e }
+  }, [selectedLanguage])
+  useEffect(() => {
+    try { localStorage.setItem('vf.currentStep', currentStep) } catch (e) { void e }
+  }, [currentStep])
+  useEffect(() => {
+    try { localStorage.setItem('vf.themeMode', themeMode) } catch (e) { void e }
+  }, [themeMode])
+  useEffect(() => {
+    try { localStorage.setItem('vf.highContrast', String(highContrast)) } catch (e) { void e }
+  }, [highContrast])
+
+  useEffect(() => {
+    applyTheme(themeMode)
+    applyContrast(highContrast)
+  }, [themeMode, highContrast])
+
+  // Backend health check
+  const checkHealth = useCallback(async () => {
+    const start = performance.now()
+    try {
+      const controller = new AbortController()
+      const id = setTimeout(() => controller.abort(), 4000)
+      const res = await fetch(apiUrl('/api/health'), { signal: controller.signal })
+      clearTimeout(id)
+      if (!res.ok) throw new Error(String(res.status))
+      setApiStatus('ok')
+      setApiLatency(Math.round(performance.now() - start))
+    } catch {
+      setApiStatus('down')
+      setApiLatency(null)
+    }
+  }, [apiUrl])
+
+  useEffect(() => {
+    checkHealth()
+    const t = setInterval(checkHealth, 20000)
+    return () => clearInterval(t)
+  }, [checkHealth])
 
   const languages = [
     { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
@@ -29,33 +158,115 @@ function App() {
     setIsProcessing(true)
     setProcessingStep('Transcribing audio...')
     console.log('Recording completed:', { audioBlob, transcription })
-    
+
     try {
+      // Create FormData to send audio file to backend
+      const formData = new FormData()
+      formData.append('audio', audioBlob, 'audio.webm')
+      formData.append('language', selectedLanguage)
+
       setProcessingStep('Processing voice input...')
-      
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
+
+      // Call backend API
+      const response = await fetch(apiUrl('/api/voice/process'), {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.message || 'Processing failed')
+      }
+
       setProcessingStep('Generating invoice...')
-      
-      // Generate mock invoice based on the selected language
-      const mockScenario = getMockScenarioForLanguage(selectedLanguage)
-      const mockInvoiceHTML = generateMockInvoiceHTML(mockScenario)
-      
+
+      // Use the invoice HTML from backend
       setTimeout(() => {
-        setInvoiceHTML(mockInvoiceHTML)
+        setInvoiceHTML(result.invoiceHTML)
         setCurrentStep('invoice')
         setIsProcessing(false)
-      }, 1000)
+        console.log('Processing complete:', result)
+      }, 500)
     } catch (error) {
       console.error('Error processing audio:', error)
       setIsProcessing(false)
-      alert('Error processing audio. Please try again.')
+
+      // Fallback to mock data if backend fails
+      console.log('Falling back to mock data...')
+      try {
+        const mockScenario = getMockScenarioForLanguage(selectedLanguage)
+        const mockInvoiceHTML = generateMockInvoiceHTML(mockScenario)
+        setInvoiceHTML(mockInvoiceHTML)
+        setCurrentStep('invoice')
+      } catch {
+        showToast('Error processing audio. Please try again.', 'error')
+      }
     }
   }
 
-  const getMockScenarioForLanguage = (language: string) => {
-    const mockScenarios: Record<string, any> = {
+  const handleTextSubmit = async () => {
+    if (!typedText.trim()) return
+    setIsProcessing(true)
+    setProcessingStep('Processing typed input...')
+    try {
+      // Attempt to use backend JSON flow if available
+      try {
+        const response = await fetch(apiUrl('/api/invoice/generate'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transactionData: {
+              // Minimal payload; backend may enrich/parse
+              items: [],
+              total: 0,
+              currency: 'USD',
+              paymentTerms: 'immediate',
+              businessType: getMockScenarioForLanguage(selectedLanguage).businessType,
+              language: selectedLanguage,
+              note: typedText
+            },
+            businessType: getMockScenarioForLanguage(selectedLanguage).businessType
+          })
+        })
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.invoiceHTML) {
+            setProcessingStep('Generating invoice...')
+            setTimeout(() => {
+              setInvoiceHTML(result.invoiceHTML)
+              setCurrentStep('invoice')
+              setIsProcessing(false)
+            }, 400)
+            return
+          }
+        }
+      } catch (e) {
+        // ignore backend failure for typed text attempt
+        void e
+      }
+
+      // Fallback: client-side mock using selected language context
+      setProcessingStep('Generating invoice...')
+      await new Promise((r) => setTimeout(r, 400))
+      const mockScenario = getMockScenarioForLanguage(selectedLanguage)
+      const mockInvoiceHTML = generateMockInvoiceHTML({ ...mockScenario, voiceInput: typedText })
+      setInvoiceHTML(mockInvoiceHTML)
+      setCurrentStep('invoice')
+      setIsProcessing(false)
+    } catch (err) {
+      console.error('Text processing failed', err)
+      setIsProcessing(false)
+      showToast('Could not process text. Please try again.', 'error')
+    }
+  }
+
+  const getMockScenarioForLanguage = (language: string): Scenario => {
+    const mockScenarios: Record<string, Scenario> = {
       'th': {
         language: 'th',
         businessType: 'street food',
@@ -86,26 +297,106 @@ function App() {
     return mockScenarios[language] || mockScenarios['en']
   }
 
-  const handleDemoScenario = async (scenario: any) => {
+  // Toast helpers
+  const showToast = (message: string, type?: 'info' | 'error' | 'success') => {
+    const id = Date.now() + Math.floor(Math.random() * 1000)
+    setToasts((prev) => [...prev, { id, message, type }])
+    setTimeout(() => dismissToast(id), 4000)
+  }
+  const dismissToast = (id: number) => {
+    setToasts((prev) => prev.filter(t => t.id !== id))
+  }
+
+  // Keyboard shortcuts
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target && (e.target as HTMLElement).tagName === 'TEXTAREA') return
+      if (e.key.toLowerCase() === 'h') {
+        setCurrentStep('welcome')
+      } else if (e.key === '?') {
+        setShowHelpTooltip((s) => !s)
+      } else if (e.key.toLowerCase() === 'r' && currentStep === 'recording') {
+        setRecordingToggle((t) => t + 1)
+        if (navigator.vibrate) navigator.vibrate(15)
+      } else if (e.key === 'Enter' && currentStep === 'demo') {
+        window.dispatchEvent(new Event('run-selected-demo'))
+      } else if (e.key === 'Escape') {
+        setShowHelpTooltip(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [currentStep])
+
+  const handleDemoScenario = async (scenario: Scenario) => {
     setSelectedLanguage(scenario.language)
     setIsProcessing(true)
     setProcessingStep('Running demo scenario...')
 
     try {
       setProcessingStep('Simulating voice processing...')
-      
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
+
+      // Try to use backend for demo scenarios as well
+      try {
+        // Derive realistic items/total/currency for backend demo
+        const currencyMap: Record<string, string> = { th: 'THB', id: 'IDR', vi: 'VND', tl: 'PHP', en: 'USD' }
+        const itemsMap: Record<string, InvoiceItem[]> = {
+          th: [ { name: 'ผัดไทย', quantity: 3, unitPrice: 60, total: 180 }, { name: 'ส้มตำ', quantity: 2, unitPrice: 35, total: 70 } ],
+          id: [ { name: 'Ganti Oli', quantity: 1, unitPrice: 150000, total: 150000 }, { name: 'Kampas Rem', quantity: 1, unitPrice: 200000, total: 200000 } ],
+          vi: [ { name: 'Áo Dài', quantity: 1, unitPrice: 1500000, total: 1500000 } ],
+          tl: [ { name: 'De Lata', quantity: 3, unitPrice: 35, total: 105 }, { name: 'Kape', quantity: 2, unitPrice: 22.5, total: 45 } ],
+          en: [ { name: 'Shirts', quantity: 3, unitPrice: 25, total: 75 }, { name: 'Pants', quantity: 2, unitPrice: 37.5, total: 75 } ]
+        }
+        const totals: Record<string, number> = { th: 250, id: 350000, vi: 1500000, tl: 150, en: 150 }
+        const txnItems = itemsMap[scenario.language] || []
+        const txnTotal = totals[scenario.language] || 0
+        const txnCurrency = currencyMap[scenario.language] || 'USD'
+
+        const response = await fetch(apiUrl('/api/invoice/generate'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            transactionData: {
+              items: txnItems,
+              total: txnTotal,
+              currency: txnCurrency,
+              paymentTerms: 'immediate',
+              businessType: scenario.businessType,
+              language: scenario.language
+            },
+            businessType: scenario.businessType
+          })
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success) {
+            setProcessingStep('Generating invoice...')
+            setTimeout(() => {
+              setInvoiceHTML(result.invoiceHTML)
+              setCurrentStep('invoice')
+              setIsProcessing(false)
+            }, 500)
+            return
+          }
+        }
+      } catch (apiError) {
+        console.warn('Backend demo failed, using client-side demo:', apiError)
+      }
+
+      // Fallback to client-side mock
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setProcessingStep('Generating invoice...')
-      
-      // Generate client-side mock invoice HTML for demo
-      const mockInvoiceHTML = generateMockInvoiceHTML(scenario)
-      
+
+        const mockInvoiceHTML = generateMockInvoiceHTML(scenario)
+
       setTimeout(() => {
         setInvoiceHTML(mockInvoiceHTML)
         setCurrentStep('invoice')
         setIsProcessing(false)
-      }, 1000)
+      }, 500)
     } catch (error) {
       console.error('Demo error:', error)
       setIsProcessing(false)
@@ -113,7 +404,7 @@ function App() {
     }
   }
 
-  const generateMockInvoiceHTML = (scenario: any) => {
+  const generateMockInvoiceHTML = (scenario: Scenario) => {
     const currencyMap: Record<string, string> = {
       'th': '฿',
       'id': 'Rp',
@@ -130,7 +421,7 @@ function App() {
       'en': 'Demo Retail Store'
     }
 
-    const items: Record<string, any[]> = {
+    const items: Record<string, InvoiceItem[]> = {
       'th': [
         { name: 'ผัดไทย', quantity: 3, unitPrice: 60, total: 180 },
         { name: 'ส้มตำ', quantity: 2, unitPrice: 35, total: 70 }
@@ -163,7 +454,7 @@ function App() {
     
     return `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="${scenario.language}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -400,7 +691,7 @@ function App() {
   const renderWelcome = () => (
     <div className="welcome-screen">
       <h1>🎤 VoiceFlow AI</h1>
-      <p className="subtitle">Transform voice to professional invoices for Southeast Asian businesses</p>
+      <p className="subtitle">{selectedLanguage === 'en' ? 'Transform voice to professional invoices for Southeast Asian businesses' : t('recordSubtitle')}</p>
       <div className="stats">
         <div className="stat">
           <strong>10 seconds</strong>
@@ -420,13 +711,13 @@ function App() {
           className="start-button primary"
           onClick={() => setCurrentStep('language')}
         >
-          🎤 Record Live
+          {t('recordLive')}
         </button>
         <button 
           className="start-button secondary"
           onClick={() => setCurrentStep('demo')}
         >
-          🎭 Try Demo
+          {t('tryDemo')}
         </button>
       </div>
     </div>
@@ -456,12 +747,36 @@ function App() {
 
   const renderRecording = () => (
     <div className="recording-screen">
-      <h2>Record Your Transaction</h2>
-      <p>Speak naturally about your business transaction</p>
+      <h2>{t('recordTitle')}</h2>
+      <p>{t('recordSubtitle')}</p>
       <VoiceRecorder
         onRecordingComplete={handleRecordingComplete}
         language={selectedLanguage}
+        externalToggle={recordingToggle}
       />
+      <div className="text-fallback" aria-labelledby="text-fallback-title">
+        <h3 id="text-fallback-title">{selectedLanguage === 'en' ? 'No mic? Type it instead' : t('processText')}</h3>
+        <p className="text-fallback-sub">{selectedLanguage === 'en' ? 'Enter a brief description of the transaction' : ''}</p>
+        <label className="sr-only" htmlFor="typed-input">Transaction details</label>
+        <textarea
+          id="typed-input"
+          className="typed-input"
+          placeholder="e.g., Pak Budi ganti oli dan kampas rem, total 350 ribu, bayar minggu depan"
+          value={typedText}
+          onChange={(e) => setTypedText(e.target.value)}
+          rows={3}
+        />
+        <div className="text-fallback-actions">
+          <button
+            className="start-button primary"
+            onClick={handleTextSubmit}
+            disabled={!typedText.trim()}
+            aria-disabled={!typedText.trim()}
+          >
+            ✍️ {t('processText')}
+          </button>
+        </div>
+      </div>
       <div className="examples">
         <h3>Example phrases:</h3>
         <div className="example-cards">
@@ -517,11 +832,17 @@ function App() {
   if (isProcessing) {
     return (
       <div className="app">
-        <div className="processing-overlay">
-          <div className="processing-animation">
-            <div className="spinner"></div>
+        <div className="processing-overlay" role="dialog" aria-modal="true" aria-label="Processing" onKeyDown={(e) => trapFocus(e)}>
+          <div className="processing-animation" role="status" aria-live="polite" tabIndex={-1}>
+            <div className="spinner" aria-hidden="true"></div>
             <h3>🤖 AI Processing</h3>
             <p>{processingStep}</p>
+            <div className="processing-steps" aria-hidden="true">
+              <div className={`step ${processingStep.includes('Transcrib') ? 'active' : ''}`}>Transcribe</div>
+              <div className={`step ${processingStep.includes('Process') ? 'active' : ''}`}>Understand</div>
+              <div className={`step ${processingStep.includes('Generat') ? 'active' : ''}`}>Invoice</div>
+            </div>
+            <button className="back-button" onClick={() => setIsProcessing(false)} aria-label="Close processing overlay">Close</button>
           </div>
         </div>
       </div>
@@ -530,6 +851,53 @@ function App() {
 
   return (
     <div className="app">
+      {/* Theme & Contrast Controls */}
+      <div className="settings-bar" role="toolbar" aria-label="Display settings">
+        <button
+          type="button"
+          className={`status-badge ${apiStatus}`}
+          onClick={checkHealth}
+          title={apiStatus === 'ok' ? `API OK${apiLatency != null ? ` • ${apiLatency}ms` : ''}` : apiStatus === 'down' ? 'API Unreachable - click to retry' : 'Checking...'}
+          aria-live="polite"
+        >
+          <span className="status-dot" aria-hidden="true"></span>
+          <span className="status-text">
+            {apiStatus === 'ok' ? `API OK${apiLatency != null ? ` • ${apiLatency}ms` : ''}` : apiStatus === 'down' ? 'API Down' : 'Checking...'}
+          </span>
+        </button>
+        <div className="settings-group">
+          <label className="sr-only" htmlFor="theme-select">Theme</label>
+          <select id="theme-select" className="settings-select" value={themeMode} onChange={(e) => setThemeMode(e.target.value as 'auto' | 'light' | 'dark')}>
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div className="settings-group">
+          <label className="settings-checkbox">
+            <input type="checkbox" checked={highContrast} onChange={(e) => setHighContrast(e.target.checked)} />
+            <span>High Contrast</span>
+          </label>
+        </div>
+      </div>
+      {/* Global Step Indicator */}
+      <nav className="stepper" aria-label="Progress">
+        {[
+          { key: 'welcome', label: 'Welcome', num: 1 },
+          { key: 'language', label: 'Language', num: 2 },
+          { key: 'recording', label: 'Record', num: 3 },
+          { key: 'invoice', label: 'Invoice', num: 4 }
+        ].map(step => (
+          <div key={step.key} className={`stepper-item ${currentStep === step.key ? 'active' : ''} ${
+            (step.key === 'language' && (currentStep === 'recording' || currentStep === 'invoice')) ||
+            (step.key === 'recording' && currentStep === 'invoice') ? 'completed' : ''
+          }`}>
+            <div className="stepper-dot" aria-hidden="true">{step.num}</div>
+            <div className="stepper-label">{step.label}</div>
+          </div>
+        ))}
+      </nav>
+
       {currentStep === 'welcome' && renderWelcome()}
       {currentStep === 'demo' && renderDemoScenarios()}
       {currentStep === 'language' && renderLanguageSelection()}
@@ -547,6 +915,7 @@ function App() {
             setRecordedAudio(null)
           }}
           title="Back to Home"
+          aria-label="Back to Home"
         >
           🏠
         </button>
@@ -558,10 +927,20 @@ function App() {
         onMouseEnter={() => setShowHelpTooltip(true)}
         onMouseLeave={() => setShowHelpTooltip(false)}
         onClick={() => setShowHelpTooltip(!showHelpTooltip)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') setShowHelpTooltip(false)
+        }}
       >
-        <button className="help-button">❓</button>
+        <button 
+          className="help-button"
+          aria-expanded={showHelpTooltip}
+          aria-controls="help-tooltip"
+          aria-label="Open quick help"
+          title="Help"
+          onClick={() => setIsHelpOpen(!isHelpOpen)}
+        >❓</button>
         {showHelpTooltip && (
-          <div className="help-tooltip">
+          <div className="help-tooltip" id="help-tooltip" role="dialog" aria-label="Quick Help" tabIndex={-1} onKeyDown={(e) => trapFocus(e)}>
             <h4>Quick Help</h4>
             <ul>
               <li><strong>Voice:</strong> Speak naturally about transactions</li>
@@ -572,8 +951,55 @@ function App() {
           </div>
         )}
       </div>
+
+      {/* Toasts */}
+      <div className="toast-container" aria-live="polite" aria-atomic="true">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast ${t.type || 'info'}`} role="status">
+            <span className="toast-message">{t.message}</span>
+            <button className="toast-close" aria-label="Dismiss" onClick={() => dismissToast(t.id)}>×</button>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 export default App
+
+// Helpers in module scope
+function trapFocus(e: React.KeyboardEvent) {
+  if (e.key !== 'Tab') return
+  const container = e.currentTarget as HTMLElement
+  const focusable = container.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+  )
+  if (!focusable.length) return
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  const active = document.activeElement as HTMLElement
+  if (e.shiftKey) {
+    if (active === first) {
+      e.preventDefault()
+      last.focus()
+    }
+  } else {
+    if (active === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+}
+
+function applyTheme(mode: 'auto' | 'light' | 'dark') {
+  const root = document.documentElement
+  root.classList.remove('theme-dark')
+  if (mode === 'dark' || (mode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    root.classList.add('theme-dark')
+  }
+}
+
+function applyContrast(on: boolean) {
+  const root = document.documentElement
+  root.classList.toggle('high-contrast', on)
+}

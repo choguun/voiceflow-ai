@@ -27,7 +27,9 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
   overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .record-button:hover {
@@ -104,41 +106,59 @@
 }
 
 .error {
-  color: #ff6b6b;
+  color: #ff8a80;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  background: rgba(255, 107, 107, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #ff6b6b;
 }
 
 .recording {
-  color: #ee5a24;
+  color: #ff7043;
   animation: recordingTextPulse 1.5s infinite;
-  text-shadow: 0 0 10px rgba(238, 90, 36, 0.5);
-  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 112, 67, 0.6), 1px 1px 3px rgba(0,0,0,0.3);
+  font-weight: 700;
+  background: rgba(255, 112, 67, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #ff7043;
 }
 
 .ready {
-  color: #667eea;
-  font-weight: 500;
+  color: #7c8aff;
+  font-weight: 600;
   transition: all 0.3s ease;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  background: rgba(124, 138, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  border-left: 3px solid #7c8aff;
 }
 
 .ready:hover {
-  color: #5a6fd8;
-  text-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+  color: #6c7bff;
+  text-shadow: 0 0 8px rgba(124, 138, 255, 0.4), 1px 1px 3px rgba(0,0,0,0.3);
+  background: rgba(124, 138, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .audio-visualizer {
   width: 300px;
   height: 80px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 40px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 15px;
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   gap: 3px;
   animation: visualizerFadeIn 0.5s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .audio-bar {
@@ -170,23 +190,29 @@
 .transcription {
   max-width: 500px;
   text-align: center;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border-left: 4px solid #667eea;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #7c8aff;
 }
 
 .transcription h3 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 18px;
+  margin: 0 0 12px 0;
+  color: #2d3748;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .transcription p {
   margin: 0;
-  color: #666;
+  color: #4a5568;
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 @keyframes recordingPulse {
@@ -310,6 +336,11 @@
   .recorder-status p {
     font-size: 1.1rem;
     font-weight: 500;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
   
   .transcription {

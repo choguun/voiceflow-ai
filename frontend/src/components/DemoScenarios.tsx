@@ -75,8 +75,24 @@ export const DemoScenarios: React.FC<DemoScenariosProps> = ({
 
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario | null>(null);
 
+  // Allow global Enter shortcut to run selected demo via custom event
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      if (selectedScenario) onScenarioSelect(selectedScenario);
+    };
+    window.addEventListener('run-selected-demo', handler as EventListener);
+    return () => window.removeEventListener('run-selected-demo', handler as EventListener);
+  }, [onScenarioSelect, selectedScenario]);
+
   const handleScenarioClick = (scenario: DemoScenario) => {
     setSelectedScenario(scenario);
+  };
+
+  const handleScenarioKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, scenario: DemoScenario) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleScenarioClick(scenario);
+    }
   };
 
   const handleRunDemo = () => {
@@ -92,13 +108,21 @@ export const DemoScenarios: React.FC<DemoScenariosProps> = ({
         <p>Experience pre-built scenarios showcasing different Southeast Asian business use cases</p>
       </div>
 
-      <div className="scenarios-grid">
+      <div className="scenarios-grid" role="list" aria-label="Demo scenarios">
         {scenarios.map((scenario) => (
           <div
             key={scenario.id}
             className={`scenario-card ${selectedScenario?.id === scenario.id ? 'selected' : ''}`}
             onClick={() => handleScenarioClick(scenario)}
+            onKeyDown={(e) => handleScenarioKeyDown(e, scenario)}
+            role="button"
+            tabIndex={0}
+            aria-pressed={selectedScenario?.id === scenario.id}
+            aria-label={`${scenario.title}. ${scenario.description}`}
           >
+            {selectedScenario?.id === scenario.id && (
+              <div className="scenario-selected-chip">Selected ✓</div>
+            )}
             <div className="scenario-icon">{scenario.icon}</div>
             <h3>{scenario.title}</h3>
             <p className="scenario-description">{scenario.description}</p>
@@ -122,7 +146,7 @@ export const DemoScenarios: React.FC<DemoScenariosProps> = ({
             <h3>Selected: {selectedScenario.title}</h3>
             <p>This demo will simulate the voice input and show the complete invoice generation process</p>
           </div>
-          <button className="run-demo-button" onClick={handleRunDemo}>
+          <button className="run-demo-button" onClick={handleRunDemo} aria-label={`Run demo for ${selectedScenario.title}`}>
             ▶️ Run Demo
           </button>
         </div>

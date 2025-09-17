@@ -53,32 +53,36 @@
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
-  color: #667eea;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  color: #4a5568;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.25);
+  font-weight: 700;
 }
 
 .action-button.primary:hover {
   background: linear-gradient(135deg, #ffffff, #f8f9ff);
+  color: #5a6fd8;
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
-  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .action-button.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.6);
   color: white;
   backdrop-filter: blur(15px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
 }
 
 .action-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   border-color: white;
   transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.25);
 }
 
 .invoice-container {
@@ -96,6 +100,26 @@
 
 .invoice-content {
   background: white;
+  color: #333;
+}
+
+.invoice-skeleton {
+  padding: 24px;
+}
+.invoice-skeleton .sk-header,
+.invoice-skeleton .sk-row {
+  height: 20px;
+  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+  background-size: 200% 100%;
+  animation: skShimmer 1.2s infinite;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.invoice-skeleton .sk-header { height: 36px; margin-bottom: 16px; }
+
+@keyframes skShimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
 .demo-actions {
@@ -121,29 +145,34 @@
 }
 
 .nav-button.primary {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid white;
-  color: white;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  color: #4a5568;
+  font-weight: 700;
+  text-shadow: none;
 }
 
 .nav-button.primary:hover {
   background: white;
-  color: #667eea;
+  color: #5a6fd8;
   transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.4);
 }
 
 .nav-button.secondary {
-  background: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.7);
   color: white;
+  font-weight: 600;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
 }
 
 .nav-button.secondary:hover {
   border-color: white;
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.25);
 }
 
 .demo-stats {
@@ -155,15 +184,16 @@
 }
 
 .stat-item {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   padding: 25px;
   border-radius: 20px;
   text-align: center;
   backdrop-filter: blur(15px);
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .stat-item::before {
@@ -180,9 +210,9 @@
 
 .stat-item:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .stat-item:hover::before {
@@ -192,16 +222,19 @@
 .stat-label {
   display: block;
   font-size: 0.9rem;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 8px;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 .stat-value {
   display: block;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  letter-spacing: 0.02em;
 }
 
 /* Enhanced Mobile Responsiveness for Invoice Preview */
@@ -284,6 +317,42 @@
     font-size: 1.3rem;
     padding: 15px 30px;
     border-radius: 40px;
+  }
+}
+
+/* Print styles */
+@media print {
+  body, html {
+    background: white !important;
+  }
+  .app::before,
+  .floating-action,
+  .floating-help,
+  .settings-bar,
+  .stepper,
+  .invoice-actions,
+  .demo-actions,
+  .demo-stats,
+  .toast-container,
+  .success-celebration,
+  .success-message {
+    display: none !important;
+  }
+  .invoice-preview {
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .invoice-container {
+    border: none;
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    border-radius: 0;
+  }
+  .invoice-content {
+    page-break-inside: avoid;
   }
 }
 

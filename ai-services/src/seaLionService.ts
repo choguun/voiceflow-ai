@@ -29,35 +29,101 @@ export interface TransactionData {
 class SeaLionService {
   private openai: OpenAI;
   private fallbackToGPT: boolean = true;
+  private cache: Map<string, { data: TransactionData; timestamp: number }> = new Map();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY || '',
     });
+
+    console.log('🦁 SEA-LION Service initialized with VoiceFlow AI integration');
   }
 
   async processVoiceTransaction(
-    transcription: string, 
+    transcription: string,
     language: string = 'en'
   ): Promise<TransactionData> {
+    const cacheKey = `${language}-${this.hashString(transcription)}`;
+
+    // Check cache first
+    const cached = this.getFromCache(cacheKey);
+    if (cached) {
+      console.log('🚀 Cache hit for transaction processing');
+      return cached;
+    }
+
     try {
-      return await this.processWithSEALion(transcription, language);
+      console.log('🦁 Attempting SEA-LION processing for VoiceFlow AI...');
+      const result = await this.processWithSEALion(transcription, language);
+      this.setCache(cacheKey, result);
+      return result;
     } catch (error) {
-      console.warn('SEA-LION processing failed, falling back to GPT-4:', error);
-      
+      console.warn('⚠️ SEA-LION processing failed, falling back to GPT-4:', error);
+
       if (this.fallbackToGPT) {
-        return await this.processWithGPT4(transcription, language);
+        const result = await this.processWithGPT4(transcription, language);
+        this.setCache(cacheKey, result);
+        return result;
       }
-      
+
       throw error;
     }
   }
 
+  private hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(36);
+  }
+
+  private getFromCache(key: string): TransactionData | null {
+    const cached = this.cache.get(key);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+      return cached.data;
+    }
+    if (cached) {
+      this.cache.delete(key); // Remove expired cache
+    }
+    return null;
+  }
+
+  private setCache(key: string, data: TransactionData): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+
+    // Clean up old cache entries periodically
+    if (this.cache.size > 100) {
+      this.cleanupCache();
+    }
+  }
+
+  private cleanupCache(): void {
+    const now = Date.now();
+    for (const [key, value] of this.cache.entries()) {
+      if ((now - value.timestamp) > this.CACHE_DURATION) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
   private async processWithSEALion(
-    transcription: string, 
+    transcription: string,
     language: string
   ): Promise<TransactionData> {
-    throw new Error('SEA-LION API not available in POC phase');
+    // For now, SEA-LION API is not publicly available
+    // This would be the integration point for actual SEA-LION API
+    console.log('🚧 SEA-LION API integration placeholder');
+    console.log('📝 Transcription:', transcription.slice(0, 100) + '...');
+    console.log('🌏 Language:', language);
+
+    throw new Error('🦁 SEA-LION API not available in POC phase - using GPT-4 fallback');
   }
 
   private async processWithGPT4(
@@ -167,19 +233,41 @@ Return JSON in this exact format:
 
   async transcribeAudio(audioBuffer: Buffer, language: string = 'en'): Promise<string> {
     try {
-      const file = new File([audioBuffer], 'audio.webm', { type: 'audio/webm' });
-      
+      console.log('🎤 VoiceFlow AI transcribing audio with SEA-LION service...');
+
+      // Import fs modules properly for Node.js environment
+      const fs = await import('fs');
+      const path = await import('path');
+      const os = await import('os');
+
+      // Create temporary file for OpenAI Whisper
+      const tempFilePath = path.join(os.tmpdir(), `voiceflow_sealion_${Date.now()}.webm`);
+      fs.writeFileSync(tempFilePath, audioBuffer);
+
+      // Create readable stream
+      const audioFile = fs.createReadStream(tempFilePath);
+      (audioFile as any).name = 'audio.webm';
+
       const response = await this.openai.audio.transcriptions.create({
-        file: file,
+        file: audioFile,
         model: 'whisper-1',
         language: language === 'tl' ? 'en' : language,
-        response_format: 'text'
+        response_format: 'text',
+        temperature: 0.1
       });
 
+      // Cleanup
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup temp file:', cleanupError);
+      }
+
+      console.log('✅ SEA-LION transcription successful');
       return response;
     } catch (error) {
-      console.error('Transcription error:', error);
-      throw new Error('Failed to transcribe audio');
+      console.error('❌ SEA-LION transcription error:', error);
+      throw new Error('Failed to transcribe audio with SEA-LION service');
     }
   }
 }

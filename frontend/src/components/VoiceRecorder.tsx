@@ -3,11 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 interface VoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob, transcription: string) => void;
   language: string;
+  externalToggle?: number;
 }
 
 export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   onRecordingComplete,
-  language: _language
+  language: _language,
+  externalToggle
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -31,9 +33,24 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (externalToggle === undefined) return;
+    // Toggle recording when externalToggle changes
+    // We assume this effect runs after value changes
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalToggle]);
+
   const startRecording = async () => {
     try {
       setError(null);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try { (navigator as any).vibrate(15); } catch {}
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -89,6 +106,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try { (navigator as any).vibrate([10, 30, 10]); } catch {}
+      }
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setAudioLevel(0);
@@ -153,6 +173,9 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           className={`record-button ${isRecording ? 'recording' : ''}`}
           onClick={isRecording ? stopRecording : startRecording}
           disabled={!!error}
+          aria-pressed={isRecording}
+          aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+          title={isRecording ? 'Stop recording' : 'Start recording'}
         >
           <div className="microphone-icon">
             🎤
@@ -168,7 +191,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           )}
         </button>
         
-        <div className="recorder-status">
+        <div className="recorder-status" aria-live="polite">
           {error ? (
             <p className="error">{error}</p>
           ) : isRecording ? (

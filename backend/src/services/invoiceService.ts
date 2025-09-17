@@ -27,6 +27,7 @@ export interface InvoiceData {
   paymentTerms: string;
   qrCode?: string;
   template: string;
+  language: string;
 }
 
 class InvoiceService {
@@ -57,7 +58,8 @@ class InvoiceService {
       currency: transactionData.currency,
       paymentTerms: transactionData.paymentTerms || 'immediate',
       qrCode,
-      template
+      template,
+      language: transactionData.language
     };
   }
 
@@ -97,23 +99,32 @@ class InvoiceService {
   }
 
   private generatePromptPayQR(amount: number): string {
-    const promptPayID = '0123456789012'; 
-    return `00020101021129370016A000000677010111${promptPayID.padStart(13, '0')}5204${amount.toFixed(2).replace('.', '')}5802TH6304`;
+    // More authentic PromptPay QR format (EMV QR Code)
+    const promptPayID = '0891234567890'; // Thai mobile number format
+    const amountStr = amount.toFixed(2).replace('.', '').padStart(12, '0');
+    return `00020101021129370016A000000677010111011300${promptPayID}520454${amountStr}5303764540${amount.toFixed(2)}5802TH63040123`;
   }
 
   private generateGCashQR(amount: number): string {
-    const gcashNumber = '09123456789';
-    return `GCASH:${gcashNumber}:${amount}:PHP`;
+    // GCash QR format based on actual structure
+    const gcashNumber = '09171234567';
+    const merchantId = 'DEMO123456';
+    return `https://qr.gcash.com/qrcode?merchantId=${merchantId}&amount=${amount}&currency=PHP&reference=VF${Date.now()}`;
   }
 
   private generateGoPayQR(amount: number): string {
-    const gopayNumber = '081234567890';
-    return `GOPAY:${gopayNumber}:${amount}:IDR`;
+    // GoPay QR format (similar to other Indonesian e-wallets)
+    const merchantId = 'GOPAY_DEMO_12345';
+    const transactionId = `VF${Date.now()}`;
+    return `https://gojek.link/gopay/qr?merchant=${merchantId}&amount=${amount}&currency=IDR&ref=${transactionId}`;
   }
 
   private generateVietQRCode(amount: number): string {
-    const bankAccount = '1234567890';
-    return `VIETQR:${bankAccount}:${amount}:VND`;
+    // VietQR standard format (more realistic)
+    const bankCode = '970436'; // VCB bank code
+    const accountNumber = '1234567890';
+    const amountStr = amount.toString();
+    return `00020101021238540010A00000072701240006${bankCode}01${accountNumber.length}${accountNumber}520454${amountStr.length}${amountStr}5303704540${amount}.005802VN63041234`;
   }
 
   private generateInvoiceNumber(): string {
@@ -249,7 +260,7 @@ class InvoiceService {
     
     return `
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="${invoiceData.language || 'en'}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">

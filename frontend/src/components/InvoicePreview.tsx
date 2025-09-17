@@ -116,13 +116,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
       </div>
 
       <div className="invoice-actions">
-        <button className="action-button primary" onClick={downloadInvoice}>
+        <button className="action-button primary" onClick={downloadInvoice} onAnimationEnd={(e) => e.currentTarget.classList.remove('pulse-success')}>
           💾 Download HTML
         </button>
-        <button className="action-button secondary" onClick={printInvoice}>
+        <button className="action-button secondary" onClick={(e) => { printInvoice(); e.currentTarget.classList.add('pulse-success'); }} onAnimationEnd={(e) => e.currentTarget.classList.remove('pulse-success')}>
           🖨️ Print
         </button>
-        <button className="action-button secondary" onClick={shareInvoice}>
+        <button className="action-button secondary" onClick={(e) => { shareInvoice(); e.currentTarget.classList.add('pulse-success'); }} onAnimationEnd={(e) => e.currentTarget.classList.remove('pulse-success')}>
           📤 Share
         </button>
       </div>
@@ -132,6 +132,14 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
           className="invoice-content"
           dangerouslySetInnerHTML={{ __html: invoiceHTML }}
         />
+        {!invoiceHTML && (
+          <div className="invoice-skeleton" aria-hidden="true">
+            <div className="sk-header"></div>
+            <div className="sk-row"></div>
+            <div className="sk-row"></div>
+            <div className="sk-row"></div>
+          </div>
+        )}
       </div>
 
       <div className="demo-actions">
