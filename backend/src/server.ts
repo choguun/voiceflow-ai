@@ -26,13 +26,39 @@ console.log('🎆 VoiceFlow AI Backend starting up...');
 console.log('🔑 OpenAI API Key status:', process.env.OPENAI_API_KEY ? '✅ Configured' : '❌ Missing');
 console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
 
-app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:5173',
-    'http://localhost:5174'
-  ],
-  credentials: true
-}));
+// CORS configuration with env-based allowlist and Vercel wildcard support
+const parseAllowedOrigins = (): string[] => {
+  const envList = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || '';
+  const list = envList
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (!list.includes('http://localhost:5173')) list.push('http://localhost:5173');
+  if (!list.includes('http://localhost:5174')) list.push('http://localhost:5174');
+  return list;
+};
+
+const allowedOrigins = parseAllowedOrigins();
+const vercelRegex = /^https?:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g., curl, server-side)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (vercelRegex.test(origin)) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['x-request-id'],
+  credentials: true,
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
