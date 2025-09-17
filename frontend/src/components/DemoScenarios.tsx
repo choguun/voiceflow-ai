@@ -77,7 +77,7 @@ export const DemoScenarios: React.FC<DemoScenariosProps> = ({
 
   // Allow global Enter shortcut to run selected demo via custom event
   React.useEffect(() => {
-    const handler = (e: Event) => {
+    const handler = () => {
       if (selectedScenario) onScenarioSelect(selectedScenario);
     };
     window.addEventListener('run-selected-demo', handler as EventListener);
